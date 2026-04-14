@@ -1,0 +1,1 @@
+Nirva berasal dari akar kata nirvana (Sanskerta: pencapaian tertinggi). Filosofinya: menjalankan bisnis seharusnya membawa ketenangan, bukan kepanikan. Dengan Nirva, semua terlihat jelas — stok, arus kas, penjualan.
