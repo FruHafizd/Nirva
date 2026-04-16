@@ -138,7 +138,7 @@ new class extends Component
                     </thead>
                     <tbody class="divide-y divide-stone-100 bg-white">
                         @forelse($products as $product)
-                            <tr class="group hover:bg-stone-50/60 transition-colors duration-150">
+                            <tr wire:key="product-{{ $product->id }}" class="group hover:bg-stone-50/60 transition-colors duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="h-10 w-10 flex-shrink-0 bg-stone-100 rounded-lg flex items-center justify-center text-stone-400 overflow-hidden group-hover:bg-white transition-colors duration-200">
@@ -191,7 +191,8 @@ new class extends Component
                                         <a href="{{ route('products.edit', $product->id) }}" class="p-2 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-all duration-200">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.138 2.362a2.25 2.25 0 013.182 3.182L9 16.5l-4 1 1-4 10.138-10.138z"/></svg>
                                         </a>
-                                        <button wire:click="deleteProduct({{ $product->id }})" 
+                                        <button type="button"
+                                                wire:click="deleteProduct({{ $product->id }})" 
                                                 wire:confirm="Are you sure you want to delete this product? This action cannot be undone."
                                                 class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
