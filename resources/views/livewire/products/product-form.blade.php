@@ -4,9 +4,12 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public ?Product $product = null;
 
     public int $category_id;
@@ -19,6 +22,8 @@ new class extends Component
     public string $unit = 'pcs';
     public ?string $barcode = null;
     public bool $is_active = true;
+    public $photo;
+    public ?string $image_url = null;
 
     /**
      * Mount state.
@@ -37,6 +42,7 @@ new class extends Component
             $this->unit = $product->unit;
             $this->barcode = $product->barcode;
             $this->is_active = $product->is_active;
+            $this->image_url = $product->image_url;
         } else {
             // Defaults for new product
             $this->category_id = Category::ordered()->first()?->id ?? 0;
@@ -59,6 +65,7 @@ new class extends Component
             'unit' => ['required', 'string', 'max:20'],
             'barcode' => ['nullable', 'string', 'max:50', Rule::unique('products', 'barcode')->ignore($this->product?->id)],
             'is_active' => ['boolean'],
+            'photo' => ['nullable', 'image', 'max:2048'],
         ];
     }
 
@@ -68,6 +75,14 @@ new class extends Component
     public function save(): void
     {
         $data = $this->validate();
+
+        if ($this->photo) {
+            $path = $this->photo->store('products', 'public');
+            $data['image_url'] = '/storage/' . $path;
+        }
+
+        // Remove photo from data before saving to DB
+        unset($data['photo']);
 
         if ($this->product) {
             $this->product->update($data);
@@ -105,6 +120,48 @@ new class extends Component
         </div>
 
         <form wire:submit="save" class="p-8 space-y-8">
+            <!-- Product Photo Section -->
+            <div>
+                <x-input-label for="photo" :value="__('Product Photo')" class="text-stone-600 font-semibold mb-4" />
+                <div class="flex items-start gap-6">
+                    <div class="relative group">
+                        <div class="w-32 h-32 rounded-2xl bg-stone-100 border-2 border-dashed border-stone-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-stone-900">
+                            @if ($photo)
+                                <img src="{{ $photo->temporaryUrl() }}" class="w-full h-full object-cover">
+                            @elseif ($image_url)
+                                <img src="{{ $image_url }}" class="w-full h-full object-cover">
+                            @else
+                                <svg class="w-10 h-10 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            @endif
+                        </div>
+                        <div wire:loading wire:target="photo" class="absolute inset-0 bg-stone-900/10 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
+                            <svg class="animate-spin h-6 w-6 text-stone-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 space-y-3">
+                        <div class="flex items-center">
+                            <label for="photo" class="px-4 py-2 bg-stone-100 text-stone-900 text-sm font-bold rounded-xl cursor-pointer hover:bg-stone-200 transition-colors">
+                                Choose Image
+                                <input wire:model="photo" id="photo" type="file" class="hidden" accept="image/*">
+                            </label>
+                            @if ($photo || $image_url)
+                                <button type="button" wire:click="$set('photo', null); $set('image_url', null)" class="ml-4 text-xs font-bold text-red-500 hover:text-red-600 transition-colors">
+                                    Remove
+                                </button>
+                            @endif
+                        </div>
+                        <p class="text-xs text-stone-400">JPG, PNG, WebP. Maximum 2MB.</p>
+                        <x-input-error :messages="$errors->get('photo')" class="mt-2" />
+                    </div>
+                </div>
+            </div>
+
             <!-- Basic Information Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="md:col-span-2">
