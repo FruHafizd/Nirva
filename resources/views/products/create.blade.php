@@ -5,9 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12 bg-stone-50 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <livewire:products.product-form />
-        </div>
+    <div class="bg-stone-50 min-h-screen">
+        <livewire:products.product-form />
     </div>
 </x-app-layout>
