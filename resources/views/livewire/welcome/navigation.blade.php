@@ -4,14 +4,14 @@
             href="{{ url('/dashboard') }}"
             class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
         >
-            Dashboard
+            Dasbor
         </a>
     @else
         <a
             href="{{ route('login') }}"
             class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
         >
-            Log in
+            Masuk
         </a>
 
         @if (Route::has('register'))
@@ -19,7 +19,7 @@
                 href="{{ route('register') }}"
                 class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20]"
             >
-                Register
+                Daftar
             </a>
         @endif
     @endauth
