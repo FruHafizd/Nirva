@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -17,6 +18,19 @@ class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
+
+    /**
+     * Boot the model.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Product $product) {
+            if ($product->image_url && str_contains($product->image_url, '/storage/')) {
+                $path = str_replace('/storage/', '', $product->image_url);
+                Storage::disk('public')->delete($path);
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.

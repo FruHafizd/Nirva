@@ -7,7 +7,7 @@
 ---
 
 **Project:** Nirva
-**Generated:** 2026-04-19 10:37:23
+**Generated:** 2026-04-19 12:05:15
 **Category:** Digital Products/Downloads
 
 ---
@@ -18,24 +18,24 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#6366F1` | `--color-primary` |
-| Secondary | `#818CF8` | `--color-secondary` |
-| CTA/Accent | `#22C55E` | `--color-cta` |
-| Background | `#EEF2FF` | `--color-background` |
-| Text | `#312E81` | `--color-text` |
+| Primary | `#7C3AED` | `--color-primary` |
+| Secondary | `#A78BFA` | `--color-secondary` |
+| CTA/Accent | `#F97316` | `--color-cta` |
+| Background | `#FAF5FF` | `--color-background` |
+| Text | `#4C1D95` | `--color-text` |
 
-**Color Notes:** Digital indigo + buy green
+**Color Notes:** Excitement purple + action orange
 
 ### Typography
 
-- **Heading Font:** Amatic SC
-- **Body Font:** Cabin
-- **Mood:** indie, craft, handmade, artisan, organic, creative
-- **Google Fonts:** [Amatic SC + Cabin](https://fonts.google.com/share?selection.family=Amatic+SC:wght@400;700|Cabin:wght@400;500;600;700)
+- **Heading Font:** Rubik
+- **Body Font:** Nunito Sans
+- **Mood:** ecommerce, clean, shopping, product, retail, conversion
+- **Google Fonts:** [Rubik + Nunito Sans](https://fonts.google.com/share?selection.family=Nunito+Sans:wght@300;400;500;600;700|Rubik:wght@300;400;500;600;700)
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Cabin:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&display=swap');
 ```
 
 ### Spacing Variables
@@ -68,7 +68,7 @@
 ```css
 /* Primary Button */
 .btn-primary {
-  background: #22C55E;
+  background: #F97316;
   color: white;
   padding: 12px 24px;
   border-radius: 8px;
@@ -85,8 +85,8 @@
 /* Secondary Button */
 .btn-secondary {
   background: transparent;
-  color: #6366F1;
-  border: 2px solid #6366F1;
+  color: #7C3AED;
+  border: 2px solid #7C3AED;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -99,7 +99,7 @@
 
 ```css
 .card {
-  background: #EEF2FF;
+  background: #FAF5FF;
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-md);
@@ -125,9 +125,9 @@
 }
 
 .input:focus {
-  border-color: #6366F1;
+  border-color: #7C3AED;
   outline: none;
-  box-shadow: 0 0 0 3px #6366F120;
+  box-shadow: 0 0 0 3px #7C3AED20;
 }
 ```
 
@@ -163,11 +163,11 @@
 
 ### Page Pattern
 
-**Pattern Name:** Product Demo + Features
+**Pattern Name:** Waitlist/Coming Soon
 
-- **Conversion Strategy:** Embedded product demo increases engagement. Use interactive mockup if possible. Auto-play video muted.
-- **CTA Placement:** Video center + CTA right/bottom
-- **Section Order:** 1. Hero, 2. Product video/mockup (center), 3. Feature breakdown per section, 4. Comparison (optional), 5. CTA
+- **Conversion Strategy:** Scarcity + exclusivity. Show waitlist count. Early access benefits. Referral program.
+- **CTA Placement:** Email form prominent (above fold) + Sticky form on scroll
+- **Section Order:** 1. Hero with countdown, 2. Product teaser/preview, 3. Email capture form, 4. Social proof (waitlist count)
 
 ---
 
