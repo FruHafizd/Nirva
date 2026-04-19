@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 
@@ -79,9 +80,23 @@ new class extends Component
     {
         $data = $this->validate();
 
+        // 1. Handle Photo Cleanup & Upload
         if ($this->photo) {
+            // Hapus foto lama jika ada dan bukan URL eksternal
+            if ($this->product && $this->product->image_url && str_contains($this->product->image_url, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $this->product->image_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+
             $path = $this->photo->store('products', 'public');
             $data['image_url'] = '/storage/' . $path;
+        } elseif ($this->image_url === null && $this->product && $this->product->image_url) {
+            // Jika foto sengaja dihapus
+            if (str_contains($this->product->image_url, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $this->product->image_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $data['image_url'] = null;
         }
 
         // Remove photo from data before saving to DB
@@ -124,7 +139,95 @@ new class extends Component
 
         <form wire:submit="save" class="p-8 space-y-8">
             <!-- Product Photo Section -->
-            <div>
+            <div x-data="{ 
+                showCamera: false, 
+                cameraStream: null, 
+                capturedPhoto: null,
+                isUploading: false,
+                
+                async openCamera() {
+                    this.showCamera = true;
+                    this.capturedPhoto = null;
+                    this.isUploading = false;
+                    await this.$nextTick();
+                    try {
+                        this.cameraStream = await navigator.mediaDevices.getUserMedia({
+                            video: { 
+                                facingMode: 'environment',
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            }
+                        });
+                        this.$refs.cameraPreview.srcObject = this.cameraStream;
+                    } catch (err) {
+                        try {
+                            this.cameraStream = await navigator.mediaDevices.getUserMedia({
+                                video: { 
+                                    facingMode: 'user',
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 }
+                                }
+                            });
+                            this.$refs.cameraPreview.srcObject = this.cameraStream;
+                        } catch (e) {
+                            console.error('Kamera Error:', e);
+                            alert('Kamera tidak dapat diakses. Pastikan izin kamera telah diberikan.');
+                            this.closeCamera();
+                        }
+                    }
+                },
+
+                capturePhoto() {
+                    const video = this.$refs.cameraPreview;
+                    const canvas = this.$refs.cameraCanvas;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.85);
+                    this.stopCameraStream();
+                },
+
+                async usePhoto() {
+                    this.isUploading = true;
+                    
+                    // Gunakan setTimeout agar UI sempat me-render indicator Memproses 
+                    // sebelum browser melakukan pemrosesan data biner & upload.
+                    setTimeout(async () => {
+                        const canvas = this.$refs.cameraCanvas;
+                        canvas.toBlob(async (blob) => {
+                            const file = new File([blob], 'product-photo.jpg', { type: 'image/jpeg' });
+                            try {
+                                // Pastikan menggunakan magic property $wire atau this.$wire
+                                await this.$wire.upload('photo', file);
+                                this.closeCamera();
+                            } catch (err) {
+                                console.error('Upload Error:', err);
+                                alert('Gagal mengunggah foto. Silakan coba lagi.');
+                            } finally {
+                                this.isUploading = false;
+                            }
+                        }, 'image/jpeg', 0.85);
+                    }, 50);
+                },
+
+                retakePhoto() {
+                    this.capturedPhoto = null;
+                    this.openCamera();
+                },
+
+                closeCamera() {
+                    this.stopCameraStream();
+                    this.showCamera = false;
+                    this.capturedPhoto = null;
+                },
+
+                stopCameraStream() {
+                    if (this.cameraStream) {
+                        this.cameraStream.getTracks().forEach(track => track.stop());
+                        this.cameraStream = null;
+                    }
+                }
+            }" @close-modal.window="closeCamera()">
                 <x-input-label for="photo" :value="__('Foto Produk')" class="text-stone-600 font-semibold mb-4" />
                 <div class="flex items-start gap-6">
                     <div class="relative group">
@@ -148,19 +251,132 @@ new class extends Component
                     </div>
                     
                     <div class="flex-1 space-y-3">
-                        <div class="flex items-center">
+                        <div class="flex items-center gap-2">
                             <label for="photo" class="px-4 py-2 bg-stone-100 text-stone-900 text-sm font-bold rounded-xl cursor-pointer hover:bg-stone-200 transition-colors">
                                 Pilih Gambar
                                 <input wire:model="photo" id="photo" type="file" class="hidden" accept="image/*">
                             </label>
+                            
+                            <button type="button" 
+                                    @click="openCamera()"
+                                    class="px-4 py-2 bg-stone-900 text-white text-sm font-bold rounded-xl cursor-pointer hover:bg-stone-800 transition-colors flex items-center gap-2 shadow-lg shadow-stone-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Foto Langsung
+                            </button>
+
                             @if ($photo || $image_url)
-                                <button type="button" wire:click="$set('photo', null); $set('image_url', null)" class="ml-4 text-xs font-bold text-red-500 hover:text-red-600 transition-colors">
+                                <button type="button" wire:click="$set('photo', null); $set('image_url', null)" class="ml-2 text-xs font-bold text-red-500 hover:text-red-600 transition-colors">
                                     Hapus
                                 </button>
                             @endif
                         </div>
                         <p class="text-xs text-stone-400">JPG, PNG, WebP. Maksimal 2MB.</p>
                         <x-input-error :messages="$errors->get('photo')" class="mt-2" />
+                    </div>
+                </div>
+
+                <!-- Camera Modal -->
+                <div x-show="showCamera" 
+                     class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0">
+                    
+                    <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="closeCamera()"></div>
+                    
+                    <div class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-stone-100"
+                         x-transition:enter="transition ease-out duration-300 transform"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100">
+                        
+                        <!-- Modal Header -->
+                        <div class="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+                            <h4 class="text-sm font-bold text-stone-900 uppercase tracking-widest">Ambil Foto Produk</h4>
+                            <button type="button" @click="closeCamera()" class="p-2 text-stone-400 hover:text-stone-900 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Content -->
+                        <div class="p-6">
+                            <div class="relative aspect-video rounded-2xl bg-stone-900 overflow-hidden shadow-inner flex items-center justify-center">
+                                <!-- Camera Preview -->
+                                <video x-ref="cameraPreview" 
+                                       x-show="!capturedPhoto"
+                                       autoplay 
+                                       playsinline 
+                                       class="w-full h-full object-cover"></video>
+                                
+                                <!-- Captured Photo Preview -->
+                                <img :src="capturedPhoto" 
+                                     x-show="capturedPhoto && !isUploading" 
+                                     class="w-full h-full object-cover">
+                                     
+                                <!-- Hidden Canvas -->
+                                <canvas x-ref="cameraCanvas" class="hidden"></canvas>
+
+                                <!-- Processing/Uploading Overlay -->
+                                <div x-show="isUploading" 
+                                     class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm flex flex-col items-center justify-center text-white z-10"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100">
+                                    <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span class="text-xs font-bold uppercase tracking-widest animate-pulse">Memproses Foto...</span>
+                                </div>
+
+                                <!-- Guides -->
+                                <div x-show="!capturedPhoto" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                                    <div class="border-2 border-white/20 rounded-xl w-4/5 h-4/5 border-dashed"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="px-6 py-6 bg-stone-50 border-t border-stone-100 flex justify-center gap-4">
+                            <!-- Capture Button -->
+                            <button type="button" 
+                                    x-show="!capturedPhoto"
+                                    @click="capturePhoto()"
+                                    class="px-8 py-3 bg-stone-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-stone-800 transition-all flex items-center gap-3">
+                                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                                Ambil Foto
+                            </button>
+
+                            <!-- Use/Retake Buttons -->
+                            <div x-show="capturedPhoto" class="flex gap-3 w-full">
+                                <button type="button" 
+                                        @click="retakePhoto()"
+                                        :disabled="isUploading"
+                                        class="flex-1 px-6 py-3 border-2 border-stone-900 text-stone-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-stone-100 transition-all disabled:opacity-30 disabled:border-stone-200">
+                                    Ulangi
+                                </button>
+                                <button type="button" 
+                                        @click="usePhoto()"
+                                        :disabled="isUploading"
+                                        class="flex-1 px-6 py-3 bg-stone-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-stone-800 transition-all flex items-center justify-center gap-3 disabled:bg-stone-700 disabled:cursor-wait min-w-[140px]">
+                                    <span x-show="!isUploading">Gunakan Foto</span>
+                                    <span x-show="isUploading" class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-stone-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Memproses...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
