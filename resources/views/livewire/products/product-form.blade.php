@@ -46,6 +46,9 @@ new class extends Component
         } else {
             // Defaults for new product
             $this->category_id = Category::ordered()->first()?->id ?? 0;
+
+            // Auto-fill barcode dari query parameter (untuk fitur scan)
+            $this->barcode = request()->query('barcode');
         }
     }
 
@@ -234,7 +237,10 @@ new class extends Component
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <x-input-label for="barcode" :value="__('Barcode (Opsional)')" class="text-stone-600 font-semibold mb-2" />
-                        <x-text-input wire:model="barcode" id="barcode" type="text" class="block w-full bg-stone-50 border-stone-200 focus:border-stone-900 focus:ring-stone-900 rounded-xl transition-all" />
+                        <x-text-input wire:model="barcode" 
+                                      id="barcode" 
+                                      type="text" 
+                                      class="block w-full bg-stone-50 border-stone-200 focus:border-stone-900 focus:ring-stone-900 rounded-xl transition-all {{ request()->query('barcode') ? 'ring-2 ring-stone-900/10 border-stone-900' : '' }}" />
                         <x-input-error :messages="$errors->get('barcode')" class="mt-2" />
                     </div>
 

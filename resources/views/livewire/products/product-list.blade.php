@@ -75,12 +75,56 @@ new class extends Component
                 <p class="mt-2 text-sm text-stone-500">Kelola produk inventaris, kategori, dan tingkat stok Anda dengan presisi minimalis.</p>
             </div>
             
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3" x-data="{ showScanner: false }" @close-modal.window="showScanner = false">
+                <button @click="showScanner = true"
+                        class="inline-flex items-center px-4 py-2.5 bg-white border-2 border-stone-900 rounded-xl font-bold text-xs text-stone-900 uppercase tracking-widest hover:bg-stone-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-stone-100 cursor-pointer group">
+                    <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    </svg>
+                    Scan Barcode
+                </button>
+
                 <a href="{{ route('products.create') }}" 
-                   class="inline-flex items-center px-4 py-2.5 bg-stone-900 border border-transparent rounded-xl font-bold text-xs text-white uppercase tracking-widest hover:bg-stone-800 focus:bg-stone-800 active:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg shadow-stone-200">
+                   class="inline-flex items-center px-4 py-2.5 bg-stone-900 border border-transparent rounded-xl font-bold text-xs text-white uppercase tracking-widest hover:bg-stone-800 focus:bg-stone-800 active:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-stone-200 cursor-pointer">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                     Produk Baru
                 </a>
+
+                <!-- Scanner Modal Overlay -->
+                <div x-show="showScanner" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm"
+                     @keydown.escape.window="showScanner = false">
+                    
+                    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-stone-200"
+                         @click.away="showScanner = false"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 scale-95 translate-y-8"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+                        
+                        <div class="px-8 py-5 flex items-center justify-between border-b border-stone-100">
+                            <div>
+                                <h3 class="text-lg font-black text-stone-900 tracking-tight">Scanner Barcode</h3>
+                                <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">Nirva Digital Artisan</p>
+                            </div>
+                            <button @click="showScanner = false" class="p-2 text-stone-400 hover:text-stone-900 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="p-8">
+                            <livewire:products.barcode-scanner />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
