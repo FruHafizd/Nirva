@@ -18,6 +18,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('products/{product}/edit', function (\App\Models\Product $product) {
         return view('products.edit', ['product' => $product]);
     })->name('products.edit');
+
+    // Transactions
+    Route::view('pos', 'transactions.pos')->name('transactions.pos');
+    Route::view('transactions', 'transactions.index')->name('transactions.index');
 });
 
 require __DIR__.'/auth.php';
