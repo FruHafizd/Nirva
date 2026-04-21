@@ -71,98 +71,106 @@
                 </div>
 
                 <!-- Daftar Item -->
-                <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="flex-1 overflow-y-auto p-6 space-y-4 font-['Jost'] scrollbar-hide">
                     @forelse($cart as $index => $item)
-                        <div class="group flex items-start space-x-3 bg-stone-50 p-3 rounded-2xl border border-transparent hover:border-amber-200 transition-all">
-                            <div class="flex-1">
-                                <h4 class="text-sm font-bold text-stone-800 line-clamp-1">{{ $item['name'] }}</h4>
-                                <div class="flex items-center justify-between mt-2">
-                                    <div class="flex items-center bg-white rounded-lg border border-stone-200 p-0.5">
-                                        <button wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})" class="p-1 text-stone-400 hover:text-amber-600">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                        <div class="group flex items-center space-x-3 bg-stone-50/80 p-4 rounded-2xl border border-transparent hover:border-amber-200 hover:shadow-sm transition-all duration-300">
+                            <div class="flex-1 overflow-hidden">
+                                <h4 class="text-sm font-bold text-stone-800 truncate tracking-tight">{{ $item['name'] }}</h4>
+                                <div class="flex items-center justify-between mt-3">
+                                    <div class="flex items-center bg-white rounded-xl border border-stone-100 p-1 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+                                        <button wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})" class="w-6 h-6 flex items-center justify-center text-stone-400 hover:text-stone-900 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
                                         </button>
                                         <span class="text-xs font-black text-stone-800 min-w-[24px] text-center">{{ $item['quantity'] }}</span>
-                                        <button wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})" class="p-1 text-stone-400 hover:text-amber-600">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                        <button wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})" class="w-6 h-6 flex items-center justify-center text-stone-400 hover:text-stone-900 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                                         </button>
                                     </div>
-                                    <span class="text-sm font-bold text-stone-900 italic">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
+                                    <div class="text-right">
+                                        <span class="text-[10px] text-stone-400 font-bold uppercase tracking-widest block leading-none mb-1">Total</span>
+                                        <span class="text-sm font-['Bodoni_Moda'] font-black text-stone-900 italic">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <button wire:click="removeFromCart({{ $index }})" class="text-stone-300 hover:text-red-500 transition-colors">
+                            <button wire:click="removeFromCart({{ $index }})" class="p-2 text-stone-300 hover:text-red-500 hover:bg-white rounded-full transition-all duration-300">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </div>
                     @empty
-                        <div class="h-full flex flex-col items-center justify-center text-center px-4">
-                            <div class="w-32 h-32 bg-stone-50 rounded-full flex items-center justify-center mb-4">
-                                <svg class="w-16 h-16 text-stone-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <div class="h-full flex flex-col items-center justify-center text-center px-4 space-y-4 opacity-50">
+                            <div class="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-stone-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                             </div>
-                            <h3 class="text-stone-500 font-bold mb-1">Wah, keranjang kosong!</h3>
-                            <p class="text-stone-400 text-xs">Pilih produk di sebelah kiri untuk memulai transaksi.</p>
+                            <div>
+                                <h3 class="text-stone-800 font-bold tracking-widest text-xs uppercase mb-1 font-['Jost']">Belum ada koleksi</h3>
+                                <p class="text-stone-400 text-[10px] font-medium leading-relaxed max-w-[1600px]">Pilih produk di galeri sebelah kiri untuk memulai transaksi Anda.</p>
+                            </div>
                         </div>
                     @endforelse
                 </div>
 
                 <!-- Footer Perhitungan & Checkout -->
-                <div class="p-6 bg-stone-900 rounded-b-3xl text-stone-50 space-y-4">
+                <div class="p-6 bg-white border-t border-stone-100 rounded-b-3xl text-stone-900 space-y-4">
                     <!-- Kalkulasi Ringkas -->
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between text-stone-400 font-medium">
+                    <div class="space-y-2 text-sm font-['Jost']">
+                        <div class="flex justify-between text-stone-500 font-medium">
                             <span>Subtotal</span>
-                            <span class="text-stone-200">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                            <span class="text-stone-900 font-bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-stone-400 font-medium">Pajak (%)</span>
-                            <input type="number" wire:model.blur="taxRate" class="w-16 h-7 bg-stone-800 border-none rounded-lg text-[10px] text-stone-100 text-center focus:ring-amber-500">
+                            <span class="text-stone-500 font-medium">Pajak (%)</span>
+                            <input type="number" wire:model.blur="taxRate" class="w-16 h-8 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 text-center focus:ring-amber-500 focus:border-amber-500">
                         </div>
-                        <div class="flex justify-between text-stone-400 font-medium">
+                        <div class="flex justify-between text-stone-500 font-medium tracking-tight">
                             <span>Nominal Pajak</span>
-                            <span class="text-stone-200">Rp {{ number_format($taxAmount, 0, ',', '.') }}</span>
+                            <span class="text-stone-900 font-bold">Rp {{ number_format($taxAmount, 0, ',', '.') }}</span>
                         </div>
-                        <div class="pt-2 border-t border-stone-800 flex justify-between items-center">
-                            <span class="text-base font-bold">GRAND TOTAL</span>
-                            <span class="text-xl font-black text-amber-500">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
+                        <div class="pt-2 border-t border-stone-100 flex justify-between items-center">
+                            <span class="text-xs font-black text-stone-400 uppercase tracking-widest">Grand Total</span>
+                            <span class="text-2xl font-['Bodoni_Moda'] font-black text-amber-600">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
                         </div>
                     </div>
 
                     <!-- Input Pembayaran -->
-                    <div class="space-y-4 pt-4 border-t border-stone-800">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Metode Bayar</label>
-                                <select wire:model.live="paymentMethod" class="w-full bg-stone-800 border-none rounded-xl text-xs text-stone-200 focus:ring-amber-500 py-3">
+                    <div class="space-y-4 pt-4 border-t border-stone-100">
+                        <div class="grid grid-cols-2 gap-3 font-['Jost']">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Metode Bayar</label>
+                                <select wire:model.live="paymentMethod" class="w-full bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:ring-amber-500 py-3 shadow-sm">
                                     <option value="cash">Tunai</option>
                                     <option value="qris">QRIS</option>
-                                    <option value="debit">Depit / EDC</option>
+                                    <option value="debit">Debit / EDC</option>
                                     <option value="transfer">Transfer</option>
                                 </select>
                             </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Diterima</label>
-                                <input type="number" wire:model.live.debounce.500ms="amountPaid" class="w-full bg-stone-800 border-none rounded-xl text-xs text-stone-100 focus:ring-amber-500 py-3 text-right font-black" placeholder="0">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Diterima</label>
+                                <input type="number" wire:model.live.debounce.500ms="amountPaid" class="w-full bg-stone-50 border border-stone-200 rounded-xl text-lg font-['Bodoni_Moda'] font-black text-stone-900 focus:ring-amber-500 py-2.5 text-right shadow-sm" placeholder="0">
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center py-2 px-4 bg-amber-500/10 rounded-2xl border border-amber-500/20">
-                            <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">Kembalian</span>
-                            <span class="text-lg font-black text-amber-500">Rp {{ number_format(max(0, $changeAmount), 0, ',', '.') }}</span>
+                        @if($amountPaid > $grandTotal)
+                        <div class="flex justify-between items-center py-3 px-4 bg-amber-50 rounded-2xl border border-amber-100">
+                            <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Kembalian</span>
+                            <span class="text-xl font-['Bodoni_Moda'] font-black text-amber-600">Rp {{ number_format(max(0, $changeAmount), 0, ',', '.') }}</span>
                         </div>
+                        @endif
 
                         <button 
                             wire:click="submit"
                             wire:loading.attr="disabled"
                             @disabled(count($cart) === 0 || $amountPaid < $grandTotal)
-                            class="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-stone-800 disabled:text-stone-600 text-stone-950 font-black py-4 rounded-2xl transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2"
+                            class="w-full bg-stone-900 hover:bg-stone-800 disabled:bg-stone-100 disabled:text-stone-300 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-stone-900/20 flex items-center justify-center space-x-2 font-['Jost'] tracking-widest text-xs uppercase"
                         >
                             <span wire:loading.remove>SELESAIKAN TRANSAKSI</span>
                             <span wire:loading class="flex items-center">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-stone-950" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 MEMPROSES...
                             </span>
                         </button>
                     </div>
                 </div>
+
             </div>
 
         </div>
