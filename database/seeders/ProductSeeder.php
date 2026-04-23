@@ -13,6 +13,9 @@ class ProductSeeder extends Seeder
         // Ambil semua kategori berdasarkan slug (key = slug, value = id)
         $categories = Category::pluck('id', 'slug');
 
+        // ==============================
+        // PRODUK MANUAL (Data realistis)
+        // ==============================
         $products = [
             // ========== MAKANAN RINGAN ==========
             [
@@ -203,11 +206,17 @@ class ProductSeeder extends Seeder
             Product::create($product);
         }
 
-        // Tambah random products untuk kategori lainnya
-        foreach ($categories as $slug => $id) {
-            if (!in_array($slug, ['makanan-ringan', 'minuman', 'mie-instan', 'bahan-pokok'])) {
-                Product::factory()->count(5)->forCategory(Category::find($id))->create();
-            }
+        // ==============================
+        // PRODUK FACTORY (Data besar untuk tes performa pencarian)
+        // Generate 500 produk per kategori = total ~6000 produk
+        // ==============================
+        $allCategories = Category::all();
+
+        foreach ($allCategories as $category) {
+            Product::factory()
+                ->count(500)
+                ->forCategory($category)
+                ->create();
         }
     }
 }

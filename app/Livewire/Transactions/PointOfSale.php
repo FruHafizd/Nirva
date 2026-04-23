@@ -193,12 +193,13 @@ class PointOfSale extends Component
     public function render()
     {
         $products = Product::active()
+            ->select('id', 'name', 'sku', 'barcode', 'price', 'stock', 'unit', 'image_url')
             ->where(function($q) {
                 $q->where('name', 'like', "%{$this->search}%")
                   ->orWhere('sku', 'like', "%{$this->search}%")
                   ->orWhere('barcode', 'like', "%{$this->search}%");
             })
-            ->limit(10)
+            ->limit(20)
             ->get();
 
         return view('livewire.transactions.point-of-sale', [

@@ -16,14 +16,14 @@ return new class extends Migration
             $table->foreignId('category_id')
                   ->constrained('categories')
                   ->cascadeOnDelete();
-            $table->string('name', 255)->unique();
-            $table->string('sku', 50)->unique();
+            $table->string('name', 255)->unique()->index();
+            $table->string('sku', 50)->unique()->index();
             $table->text('description')->nullable();
             $table->decimal('price', 12, 2);
             $table->decimal('cost_price', 12, 2)->nullable();
             $table->integer('stock')->default(0);
             $table->string('unit', 20)->default('pcs');
-            $table->string('barcode', 50)->nullable()->unique();
+            $table->string('barcode', 50)->nullable()->unique()->index();
             $table->boolean('is_active')->default(true)->index();
             $table->string('image_url', 500)->nullable();
             $table->timestamps();
