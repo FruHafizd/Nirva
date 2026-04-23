@@ -6,161 +6,43 @@ use Livewire\Volt\Component;
 new class extends Component
 {
     public string $scannedBarcode = '';
-    public bool $isScanning = false;
-    public bool $showResult = false;
-    public ?Product $foundProduct = null;
-    public string $errorMessage = '';
     public string $scanMode = 'device'; // 'device' | 'camera' | 'manual'
 
     /**
-     * Cari produk berdasarkan barcode yang di-scan.
+     * Proses barcode — dispatch event dengan data product (jika ada).
+     * Parent component yang menentukan action selanjutnya.
      */
     public function processBarcode(string $barcode): void
     {
         $this->scannedBarcode = trim($barcode);
-        $this->isScanning = false;
-        $this->errorMessage = '';
+        if (empty($this->scannedBarcode)) return;
 
-        if (empty($this->scannedBarcode)) {
-            $this->errorMessage = 'Barcode tidak boleh kosong.';
-            return;
-        }
+        $product = Product::where('barcode', $this->scannedBarcode)->first();
 
-        try {
-            $this->foundProduct = Product::where('barcode', $this->scannedBarcode)->first();
-            $this->showResult = true;
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Terjadi kesalahan saat mencari produk.';
-        }
+        // Dispatch event ke parent — parent yang decide mau ngapain
+        $this->dispatch('barcode-result', [
+            'barcode' => $this->scannedBarcode,
+            'found' => (bool) $product,
+            'product_id' => $product?->id,
+            'product_name' => $product?->name,
+            'product_price' => $product?->price,
+        ]);
     }
 
-    /**
-     * Reset scanner untuk pemindaian ulang.
-     */
-    public function resetScanner(): void
-    {
-        $this->scannedBarcode = '';
-        $this->foundProduct = null;
-        $this->showResult = false;
-        $this->isScanning = false;
-        $this->errorMessage = '';
-
-        $this->dispatch('scanner-reset');
-    }
-
-    /**
-     * Ganti mode scan.
-     */
     public function switchMode(string $mode): void
     {
         $this->scanMode = $mode;
-        $this->resetScanner();
+        $this->scannedBarcode = '';
+        $this->dispatch('scanner-reset');
     }
 }; ?>
 
 <div class="space-y-5"
-     x-data="{
-        html5QrCode: null,
-        scanning: false,
-        cameraError: '',
-        
-        // === Hardware Scanner (USB/Bluetooth) ===
-        scanBuffer: '',
-        scanTimeout: null,
-
-        init() {
-            Livewire.on('scanner-reset', () => {
-                this.cameraError = '';
-                this.scanBuffer = '';
-            });
-
-            // Global keyboard listener untuk hardware barcode scanner
-            // Scanner USB mengirim karakter sangat cepat (< 50ms antar karakter)
-            // dan diakhiri dengan Enter key
-            document.addEventListener('keydown', (e) => {
-                // Hanya aktif di mode 'device'
-                if ($wire.get('scanMode') !== 'device') return;
-                // Abaikan jika user sedang focus di input lain
-                const activeTag = document.activeElement?.tagName?.toLowerCase();
-                if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') return;
-
-                if (e.key === 'Enter' && this.scanBuffer.length >= 4) {
-                    // Barcode selesai di-scan oleh hardware
-                    e.preventDefault();
-                    const barcode = this.scanBuffer;
-                    this.scanBuffer = '';
-                    clearTimeout(this.scanTimeout);
-                    $wire.processBarcode(barcode);
-                    if (navigator.vibrate) navigator.vibrate(100);
-                } else if (e.key.length === 1) {
-                    // Kumpulkan karakter
-                    this.scanBuffer += e.key;
-                    clearTimeout(this.scanTimeout);
-                    // Reset buffer jika tidak ada input selama 100ms (bukan scanner)
-                    this.scanTimeout = setTimeout(() => {
-                        this.scanBuffer = '';
-                    }, 100);
-                }
-            });
-        },
-
-        // === Camera Scanner ===
-        async startCamera() {
-            this.cameraError = '';
-            this.scanning = true;
-            $wire.set('isScanning', true);
-            
-            await this.$nextTick();
-            
-            try {
-                this.html5QrCode = new Html5Qrcode('barcode-reader');
-                const config = { 
-                    fps: 15, 
-                    qrbox: { width: 280, height: 160 },
-                    aspectRatio: 1.777778,
-                    formatsToSupport: [ 
-                        Html5QrcodeSupportedFormats.EAN_13, 
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.EAN_8
-                    ]
-                };
-
-                const onSuccess = (decodedText) => {
-                    this.stopCamera();
-                    $wire.processBarcode(decodedText);
-                    if (navigator.vibrate) navigator.vibrate(100);
-                };
-                
-                // Coba kamera belakang dulu, fallback ke depan (laptop)
-                try {
-                    await this.html5QrCode.start({ facingMode: 'environment' }, config, onSuccess);
-                } catch {
-                    await this.html5QrCode.start({ facingMode: 'user' }, config, onSuccess);
-                }
-            } catch (err) {
-                console.error('Camera Error:', err);
-                this.scanning = false;
-                $wire.set('isScanning', false);
-                this.cameraError = 'Kamera tidak dapat diakses. Pastikan izin kamera diberikan.';
-            }
-        },
-
-        async stopCamera() {
-            if (this.html5QrCode && this.scanning) {
-                try {
-                    await this.html5QrCode.stop();
-                    await this.html5QrCode.clear();
-                } catch (err) {
-                    console.error('Stop Error:', err);
-                }
-            }
-            this.scanning = false;
-            $wire.set('isScanning', false);
-        }
-     }"
-     x-init="init()"
+     x-data="barcodeScanner({
+        elementId: 'barcode-reader-{{ $this->getId() }}',
+        onScan: (barcode) => $wire.processBarcode(barcode)
+     })"
+     x-on:scanner-reset.window="reset()"
      @close-modal.window="stopCamera()">
 
     <!-- Mode Selector Tabs -->
@@ -220,9 +102,9 @@ new class extends Component
     <!-- ==================== MODE: CAMERA ==================== -->
     @if($scanMode === 'camera')
         <div class="relative overflow-hidden rounded-2xl bg-stone-100 aspect-video border-2 border-dashed border-stone-200 flex flex-col items-center justify-center group">
-            <div id="barcode-reader" class="w-full h-full" x-show="scanning"></div>
+            <div id="barcode-reader-{{ $this->getId() }}" class="w-full h-full" x-show="scanning"></div>
             
-            <template x-if="!scanning && !$wire.showResult">
+            <template x-if="!scanning">
                 <div class="text-center p-8">
                     <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-stone-100 group-hover:scale-110 transition-transform duration-300">
                         <svg class="w-8 h-8 text-stone-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +126,36 @@ new class extends Component
             <template x-if="scanning">
                 <div class="absolute inset-x-0 top-0 h-1 bg-stone-900/50 shadow-[0_0_15px_rgba(28,25,23,0.5)] animate-scan z-10"></div>
             </template>
+
+            <!-- Ganti Kamera Button -->
+            <button type="button"
+                    x-show="scanning"
+                    @click="switchCamera()"
+                    class="absolute bottom-4 right-4 z-20 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white p-3 rounded-full transition-all border border-white/30"
+                    title="Ganti Kamera">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            </button>
+
+            <!-- Camera Label -->
+            <div x-show="scanning" 
+                 class="absolute top-4 left-4 z-20 px-3 py-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-medium rounded-full border border-white/10 uppercase tracking-widest"
+                 x-text="cameraLabel">
+            </div>
             
+            <!-- Success Flash Overlay -->
+            <div x-show="scanSuccess" 
+                 x-transition:enter="transition ease-out duration-150" 
+                 x-transition:leave="transition ease-in duration-300" 
+                 class="absolute inset-0 bg-green-500/20 z-30 flex items-center justify-center backdrop-blur-[2px]">
+                <div class="bg-white rounded-full p-4 shadow-2xl scale-110">
+                    <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            </div>
+
             <!-- Camera Error State -->
             <template x-if="cameraError">
                 <div class="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
@@ -290,68 +201,6 @@ new class extends Component
         </div>
     @endif
 
-    <!-- ==================== RESULTS AREA (Shared) ==================== -->
-    @if($showResult)
-        <div class="space-y-4" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4">
-            @if($foundProduct)
-                <div class="p-6 bg-stone-900 rounded-2xl shadow-xl shadow-stone-200 text-white flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-0.5">Produk Ditemukan</p>
-                        <h5 class="font-bold truncate">{{ $foundProduct->name }}</h5>
-                        <p class="text-xs text-stone-300">{{ $foundProduct->barcode }} • {{ $foundProduct->formatted_price }}</p>
-                    </div>
-                    <a href="{{ route('products.edit', $foundProduct) }}" 
-                       wire:navigate
-                       class="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors cursor-pointer">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                    </a>
-                </div>
-            @else
-                <div class="p-6 bg-white border border-stone-200 rounded-2xl shadow-sm space-y-4">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-stone-900">Barcode Baru Terdeteksi</p>
-                            <p class="text-xs text-stone-500 mt-1">Produk dengan barcode <span class="font-mono font-bold text-stone-900 underline">{{ $scannedBarcode }}</span> belum terdaftar di sistem.</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('products.create', ['barcode' => $scannedBarcode]) }}" 
-                       wire:navigate
-                       class="flex-1 inline-flex items-center justify-center w-full px-4 py-2.5 bg-stone-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-stone-800 transition-all cursor-pointer">
-                        Daftarkan Sekarang
-                    </a>
-                </div>
-            @endif
-            
-            <button type="button" 
-                    wire:click="resetScanner"
-                    class="w-full py-3 border-2 border-stone-900 text-stone-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-stone-50 transition-all cursor-pointer">
-                Scan Barcode Lain
-            </button>
-        </div>
-    @endif
-
-    <!-- Error Message -->
-    @if($errorMessage)
-        <div class="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-xs font-bold text-red-700">{{ $errorMessage }}</p>
-        </div>
-    @endif
-
     <style>
         @keyframes scan {
             0% { top: 0; }
@@ -360,6 +209,12 @@ new class extends Component
         }
         .animate-scan {
             animation: scan 2s linear infinite;
+        }
+        
+        /* Optimasi visual untuk decoder */
+        [id^="barcode-reader-"] video {
+            object-fit: cover !important;
+            filter: contrast(1.15) brightness(1.05);
         }
     </style>
 </div>

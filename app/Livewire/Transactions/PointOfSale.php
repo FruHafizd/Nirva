@@ -12,6 +12,28 @@ use Illuminate\Support\Facades\Auth;
 #[Title('Kasir (POS)')]
 class PointOfSale extends Component
 {
+    /**
+     * Handle barcode scan result.
+     */
+    #[\Livewire\Attributes\On('barcode-result')]
+    public function handleBarcodeResult(array $data): void
+    {
+        if ($data['found'] && $data['product_id']) {
+            $this->addToCart($data['product_id']);
+            
+            // Flash notification
+            $this->dispatch('notify', [
+                'message' => "✓ {$data['product_name']} ditambahkan",
+                'type' => 'success'
+            ]);
+        } else {
+            $this->dispatch('notify', [
+                'message' => "Produk dengan barcode {$data['barcode']} tidak ditemukan",
+                'type' => 'error'
+            ]);
+        }
+    }
+
     // Search & Data
     public $search = '';
     public $cart = [];
