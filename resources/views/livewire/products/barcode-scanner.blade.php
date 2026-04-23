@@ -37,7 +37,7 @@ new class extends Component
     }
 }; ?>
 
-<div class="space-y-5"
+<div class="space-y-5 font-['Jost']"
      x-data="barcodeScanner({
         elementId: 'barcode-reader-{{ $this->getId() }}',
         onScan: (barcode) => $wire.processBarcode(barcode)
