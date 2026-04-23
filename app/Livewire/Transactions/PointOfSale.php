@@ -140,6 +140,24 @@ class PointOfSale extends Component
         $this->changeAmount = (float) $this->amountPaid - $this->grandTotal;
     }
 
+    /**
+     * Set the amount paid from quick-pay buttons.
+     */
+    public function setAmountPaid(float $amount)
+    {
+        $this->amountPaid = $amount;
+        $this->recalculate();
+    }
+
+    /**
+     * Set the amount paid to the exact grand total.
+     */
+    public function setExactAmount()
+    {
+        $this->amountPaid = (float) $this->grandTotal;
+        $this->recalculate();
+    }
+
     public function submit(TransactionService $service)
     {
         $this->validate([

@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-stone-100 p-4 lg:p-6 font-sans">
+<div class="min-h-screen bg-stone-100 p-4 lg:p-6 font-['Jost']">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto">
         
         <!-- BAGIAN KIRI: SEARCH & PRODUK -->
@@ -117,7 +117,7 @@
                 </div>
 
                 <!-- Daftar Item -->
-                <div class="flex-1 overflow-y-auto p-6 space-y-4 font-['Jost'] scrollbar-hide">
+                <div class="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
                     @forelse($cart as $index => $item)
                         <div class="group flex items-center space-x-3 bg-stone-50/80 p-4 rounded-2xl border border-transparent hover:border-amber-200 hover:shadow-sm transition-all duration-300">
                             <div class="flex-1 overflow-hidden">
@@ -134,7 +134,7 @@
                                     </div>
                                     <div class="text-right">
                                         <span class="text-[10px] text-stone-400 font-bold uppercase tracking-widest block leading-none mb-1">Total</span>
-                                        <span class="text-sm font-['Bodoni_Moda'] font-black text-stone-900 italic">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
+                                        <span class="text-sm font-black text-stone-900">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -148,7 +148,7 @@
                                 <svg class="w-12 h-12 text-stone-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-stone-800 font-bold tracking-widest text-xs uppercase mb-1 font-['Jost']">Belum ada koleksi</h3>
+                                <h3 class="text-stone-800 font-bold tracking-widest text-xs uppercase mb-1">Belum ada koleksi</h3>
                                 <p class="text-stone-400 text-[10px] font-medium leading-relaxed max-w-[1600px]">Pilih produk di galeri sebelah kiri untuk memulai transaksi Anda.</p>
                             </div>
                         </div>
@@ -158,7 +158,7 @@
                 <!-- Footer Perhitungan & Checkout -->
                 <div class="p-6 bg-white border-t border-stone-100 rounded-b-3xl text-stone-900 space-y-4">
                     <!-- Kalkulasi Ringkas -->
-                    <div class="space-y-2 text-sm font-['Jost']">
+                    <div class="space-y-2 text-sm">
                         <div class="flex justify-between text-stone-500 font-medium">
                             <span>Subtotal</span>
                             <span class="text-stone-900 font-bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
@@ -173,13 +173,13 @@
                         </div>
                         <div class="pt-2 border-t border-stone-100 flex justify-between items-center">
                             <span class="text-xs font-black text-stone-400 uppercase tracking-widest">Grand Total</span>
-                            <span class="text-2xl font-['Bodoni_Moda'] font-black text-amber-600">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
+                            <span class="text-3xl font-black text-amber-600">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
                         </div>
                     </div>
 
                     <!-- Input Pembayaran -->
                     <div class="space-y-4 pt-4 border-t border-stone-100">
-                        <div class="grid grid-cols-2 gap-3 font-['Jost']">
+                        <div class="grid grid-cols-2 gap-3">
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Metode Bayar</label>
                                 <select wire:model.live="paymentMethod" class="w-full bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:ring-amber-500 py-3 shadow-sm">
@@ -191,14 +191,28 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Diterima</label>
-                                <input type="number" wire:model.live.debounce.500ms="amountPaid" class="w-full bg-stone-50 border border-stone-200 rounded-xl text-lg font-['Bodoni_Moda'] font-black text-stone-900 focus:ring-amber-500 py-2.5 text-right shadow-sm" placeholder="0">
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-xs">Rp</span>
+                                    <input type="number" wire:model.live.debounce.500ms="amountPaid" class="w-full bg-stone-50 border border-stone-200 rounded-xl text-xl font-black text-stone-900 focus:ring-amber-500 py-2.5 pl-10 text-right shadow-sm transition-all" placeholder="0">
+                                </div>
+                                
+                                {{-- Quick Pay Buttons --}}
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <button type="button" wire:click="setAmountPaid(20000)" class="py-2 px-1 bg-white border border-stone-200 rounded-lg text-[10px] font-bold text-stone-600 hover:border-amber-500 hover:text-amber-600 transition-all cursor-pointer">20.000</button>
+                                    <button type="button" wire:click="setAmountPaid(50000)" class="py-2 px-1 bg-white border border-stone-200 rounded-lg text-[10px] font-bold text-stone-600 hover:border-amber-500 hover:text-amber-600 transition-all cursor-pointer">50.000</button>
+                                    <button type="button" wire:click="setAmountPaid(100000)" class="py-2 px-1 bg-white border border-stone-200 rounded-lg text-[10px] font-bold text-stone-600 hover:border-amber-500 hover:text-amber-600 transition-all cursor-pointer">100.000</button>
+                                    <button type="button" wire:click="setExactAmount" class="py-2 px-1 bg-amber-50 border border-amber-200 rounded-lg text-[10px] font-black text-amber-700 hover:bg-amber-100 transition-all cursor-pointer uppercase">Uang Pas</button>
+                                </div>
                             </div>
                         </div>
 
                         @if($amountPaid > $grandTotal)
-                        <div class="flex justify-between items-center py-3 px-4 bg-amber-50 rounded-2xl border border-amber-100">
-                            <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Kembalian</span>
-                            <span class="text-xl font-['Bodoni_Moda'] font-black text-amber-600">Rp {{ number_format(max(0, $changeAmount), 0, ',', '.') }}</span>
+                        <div class="flex justify-between items-center py-4 px-5 bg-amber-50 rounded-2xl border border-amber-100 shadow-sm transition-all duration-300">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Kembalian</span>
+                                <span class="text-xs text-amber-500/70 font-medium">Uang Kembali</span>
+                            </div>
+                            <span class="text-2xl font-black text-amber-600 tracking-tight">Rp {{ number_format(max(0, $changeAmount), 0, ',', '.') }}</span>
                         </div>
                         @endif
 
@@ -206,7 +220,7 @@
                             wire:click="submit"
                             wire:loading.attr="disabled"
                             @disabled(count($cart) === 0 || $amountPaid < $grandTotal)
-                            class="w-full bg-stone-900 hover:bg-stone-800 disabled:bg-stone-100 disabled:text-stone-300 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-stone-900/20 flex items-center justify-center space-x-2 font-['Jost'] tracking-widest text-xs uppercase"
+                            class="w-full bg-stone-900 hover:bg-stone-800 disabled:bg-stone-100 disabled:text-stone-300 text-white font-black py-5 rounded-2xl transition-all shadow-lg shadow-stone-900/20 flex items-center justify-center space-x-2 tracking-widest text-xs uppercase cursor-pointer"
                         >
                             <span wire:loading.remove>SELESAIKAN TRANSAKSI</span>
                             <span wire:loading class="flex items-center">
